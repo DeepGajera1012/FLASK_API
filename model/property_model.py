@@ -9,7 +9,7 @@ import itertools
 class property_model():
     def __init__(self):
         try:
-            self.con = mysql.connector.connect(host="localhost", user="root", password=os.getenv('PASSWORD'), database = os.getenv('DATABASE'))
+            self.con = mysql.connector.connect(host=os.getenv('HOST'), user=os.getenv('USER_NAME'), password=os.getenv('PASSWORD'), database = os.getenv('DATABASE'))
             self.con.autocommit = True
             self.cur = self.con.cursor(dictionary=True)
             print("done")
@@ -68,3 +68,8 @@ class property_model():
         self.cur.execute(f"insert into tbl_like_property (user_id,property_id) values ({user_id},{property_id})")
 
         return jsonify({"message":"property_liked"})
+
+    def dislike_property(self, user_id, property_id):
+        self.cur.execute(f"insert into tbl_dislike_property (user_id,property_id) values ({user_id},{property_id})")
+
+        return jsonify({"message": "property_disliked"})

@@ -7,7 +7,7 @@ import os
 class user_model():
     def __init__(self):
         try:
-            self.con = mysql.connector.connect(host="localhost", user="root", password=os.getenv('PASSWORD'), database = os.getenv('DATABASE'))
+            self.con = mysql.connector.connect(host=os.getenv('HOST'), user=os.getenv('USER_NAME'), password=os.getenv('PASSWORD'), database = os.getenv('DATABASE'))
             self.con.autocommit = True
             self.cur = self.con.cursor(dictionary=True)
             print("done1")

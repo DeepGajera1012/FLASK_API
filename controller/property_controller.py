@@ -37,3 +37,8 @@ def add_filter(user_id):
 @token_required
 def like_property(user_id,property_id):
     return obj.like_property(user_id,property_id)
+
+@app.route("/property/dislike/<property_id>",methods=['POST'])
+@token_required
+def dislike_property(user_id,property_id):
+    return obj.dislike_property(user_id,property_id)
