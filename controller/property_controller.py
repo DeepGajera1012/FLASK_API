@@ -42,3 +42,10 @@ def like_property(user_id,property_id):
 @token_required
 def dislike_property(user_id,property_id):
     return obj.dislike_property(user_id,property_id)
+
+@app.route("/agent/property/list/<agent_id>")
+@token_required
+def agent_property_list(user_id,agent_id):
+    return obj.agent_property_list(agent_id)
+
+

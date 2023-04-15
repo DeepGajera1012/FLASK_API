@@ -13,9 +13,8 @@ def register_user():
 
 @app.route("/user_login",methods=['GET'])
 def user():
-    user_id = obj.user_login(request.form)
-    token = jwt.encode({'id': user_id }, os.getenv('SECRET_KEY'), algorithm='HS256')
-    return jsonify({"token":str(token)[2:-1]})
+    token = obj.user_login(request.form)
+    return jsonify({"message":token})
 
 @app.route("/after_login")
 @token_required

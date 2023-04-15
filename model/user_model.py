@@ -21,7 +21,13 @@ class user_model():
     def user_login(self,data):
         self.cur.execute(f"select id,first_name,last_name from tbl_users where phone='{data['phone']}' and password='{data['password']}'")
         res = self.cur.fetchall()
-        return res[0]['id']
+        print(len(res))
+        if len(res) == 0:
+            return "token not genreated due to invalid phone or paswword"
+        token = jwt.encode({'id': res[0]['id'] }, os.getenv('SECRET_KEY'), algorithm='HS256')
+        return str(token)[2:-1]
+
+        # return res[0]['id']
 
     def validate_phone(self,data):
         self.cur.execute(f"select id from tbl_users where phone='{data['phone']}'")

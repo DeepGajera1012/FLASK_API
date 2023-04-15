@@ -17,7 +17,7 @@ class property_model():
             print("error")
 
     def property_details(self,id):
-        self.cur.execute(f'''SELECT (SELECT image FROM tbl_property_image pi WHERE p.id = pi.property_id LIMIT 1) as property_image, p.price,p.address,p.bedrooms,p.bathrooms,p.parkings,p.property_type,p.area,p.area_type,p.description,p.latitude,p.longitude,u.first_name,u.last_name,u.profile_image,u.phone
+        self.cur.execute(f'''SELECT (SELECT image FROM tbl_property_image pi WHERE p.id = pi.property_id LIMIT 1) as property_image, p.price,p.address,p.bedrooms,p.bathrooms,p.parkings,p.property_type,p.area,p.area_type,p.description,p.latitude,p.longitude,u.id,u.first_name,u.last_name,u.profile_image,u.phone
                             FROM tbl_property p 
                             JOIN tbl_users u on p.user_id = u.id 
                             WHERE p.id = {id}''')
@@ -25,14 +25,14 @@ class property_model():
         self.cur.execute(f"SELECT image FROM tbl_property_image WHERE property_id={id}")
         res2 = self.cur.fetchall()
         property_details = dict(itertools.islice(res[0].items(),12))
-        agent_details = dict(itertools.islice(res[0].items(),12,16))
+        agent_details = dict(itertools.islice(res[0].items(),12,17))
         return make_response({"property_details":property_details,
                               "agent_details" :agent_details,
                               "property_images":[i['image'] for i in res2]
                               })
 
     def property_interest(self,id):
-        self.cur.execute(f'''SELECT p.id,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = lp.property_id LIMIT 1) as property_image,p.price,p.address,u.profile_image as agent_image FROM tbl_like_property lp 
+        self.cur.execute(f'''SELECT p.id,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = lp.property_id LIMIT 1) as property_image,p.price,p.address,u.id as agent_id,u.profile_image as agent_image FROM tbl_like_property lp 
                                 JOIN tbl_property p on lp.property_id = p.id 
                                 JOIN tbl_users u on p.user_id = u.id
                                 WHERE lp.user_id={id}''')
@@ -40,7 +40,7 @@ class property_model():
         return jsonify({"intrest":res})
 
     def property_probably_not(self,id):
-        self.cur.execute(f'''SELECT p.id,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = lp.property_id LIMIT 1) as property_image,p.price,p.address,u.profile_image as agent_image FROM tbl_dislike_property lp 
+        self.cur.execute(f'''SELECT p.id,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = lp.property_id LIMIT 1) as property_image,p.price,p.address,u.id as agent_id,u.profile_image as agent_image FROM tbl_dislike_property lp 
                                         JOIN tbl_property p on lp.property_id = p.id 
                                         JOIN tbl_users u on p.user_id = u.id
                                         WHERE lp.user_id={id}''')
@@ -52,7 +52,7 @@ class property_model():
         res = self.cur.fetchall()
         if res[0]['filter_for'] == "Buy":
             res[0]['filter_for'] = "Sale"
-        self.cur.execute(f'''SELECT p.id,u.profile_image as agent_image,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = p.id LIMIT 1) as property_image,u.phone,p.price,p.address,p.bedrooms,p.bathrooms,p.parkings,p.property_type,p.area 
+        self.cur.execute(f'''SELECT p.id,u.id as agent_id,u.profile_image as agent_image,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = p.id LIMIT 1) as property_image,u.phone,p.price,p.address,p.bedrooms,p.bathrooms,p.parkings,p.property_type,p.area 
                             FROM tbl_property p 
                             JOIN tbl_users u on p.user_id = u.id
                             WHERE p.property_for = '{res[0]['filter_for']}' and (p.price BETWEEN {res[0]['lowest_price']} and {res[0]['highest_price']}) and p.bedrooms >= {res[0]['min_bedrooms']} and p.parkings >= {res[0]['min_parkings']} and p.area >= {res[0]['min_land_size']}''')
@@ -73,3 +73,10 @@ class property_model():
         self.cur.execute(f"insert into tbl_dislike_property (user_id,property_id) values ({user_id},{property_id})")
 
         return jsonify({"message": "property_disliked"})
+
+    def agent_property_list(self, agent_id):
+        self.cur.execute(f"SELECT p.id as property_id,(SELECT pi.image FROM tbl_property_image pi WHERE pi.property_id = p.id LIMIT 1) as property_image,p.address FROM tbl_property p WHERE p.user_id={agent_id}")
+        res = self.cur.fetchall()
+        self.cur.execute(f'''SELECT concat(first_name," ",last_name) as name,profile_image FROM tbl_users WHERE id={agent_id}''')
+        res1 = self.cur.fetchall()
+        return jsonify({"agent_details":res1[0],"property_list":res})
